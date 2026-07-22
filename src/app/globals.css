@@ -1,26 +1,410 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ------------------------------------------------------------------ *
+ * Alpine Topo — design tokens
+ * Aiguille = a needle-like alpine peak. Verticality, topography, grades.
+ * ------------------------------------------------------------------ */
+@theme {
+  --color-limestone: #f0eee8; /* paper */
+  --color-chalk: #faf9f5; /* raised surfaces */
+  --color-basalt: #16191d; /* ink + dark sections */
+  --color-basalt-800: #21262c;
+  --color-granite: #4a5159; /* secondary text / lines */
+  --color-granite-400: #7a828b;
+  --color-send: #f0531c; /* the single vivid accent — a hold */
+  --color-send-deep: #c23c0d;
+  --color-glacier: #7fb7be; /* cool secondary — contours / data */
+  --color-glacier-deep: #3c757c;
+  --color-line: rgba(22, 25, 29, 0.14);
+  --color-line-strong: rgba(22, 25, 29, 0.28);
+
+  --font-display: var(--font-display), "Arial Narrow", sans-serif;
+  --font-body: var(--font-body), system-ui, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, monospace;
+
+  --shadow-lift: 0 1px 0 rgba(22, 25, 29, 0.04),
+    0 18px 40px -24px rgba(22, 25, 29, 0.4);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ------------------------------------------------------------------ *
+ * Base
+ * ------------------------------------------------------------------ */
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
+  font-feature-settings: "ss01";
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-send);
+  color: var(--color-chalk);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-send);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 100;
+  transform: translateY(-160%);
+  background: var(--color-basalt);
+  color: var(--color-chalk);
+  padding: 0.6rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: transform 0.18s ease;
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+/* ------------------------------------------------------------------ *
+ * Typography helpers
+ * ------------------------------------------------------------------ */
+.font-display {
+  font-family: var(--font-display);
+}
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-granite);
+}
+
+.display-xl {
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  font-size: clamp(2.9rem, 9vw, 7.5rem);
+  text-transform: uppercase;
+}
+
+.display-lg {
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  font-size: clamp(2.3rem, 5.5vw, 4.5rem);
+  text-transform: uppercase;
+}
+
+.display-md {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-size: clamp(1.7rem, 3vw, 2.6rem);
+  text-transform: uppercase;
+}
+
+.lede {
+  font-size: clamp(1.05rem, 1.6vw, 1.3rem);
+  line-height: 1.55;
+  color: var(--color-granite);
+}
+
+/* ------------------------------------------------------------------ *
+ * Layout container
+ * ------------------------------------------------------------------ */
+.wrap {
+  width: 100%;
+  max-width: 78rem;
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 4vw, 3.5rem);
+}
+
+/* A hairline that reads like a route-tape / topo divider */
+.rule {
+  height: 1px;
+  background: var(--color-line);
+}
+
+/* ------------------------------------------------------------------ *
+ * Scroll reveal (progressive enhancement — visible by default)
+ * ------------------------------------------------------------------ */
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+/* If JS never runs, never leave content hidden */
+.no-js .reveal {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Grade rail (signature element)
+ * ------------------------------------------------------------------ */
+.grade-rail {
+  position: fixed;
+  left: max(1.1rem, env(safe-area-inset-left));
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 40;
+  display: none;
+  flex-direction: column;
+  gap: 0;
+  pointer-events: auto;
+}
+@media (min-width: 1180px) {
+  .grade-rail {
+    display: flex;
+  }
+}
+
+.grade-rail__line {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: var(--color-line-strong);
+}
+.grade-rail__fill {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  width: 2px;
+  background: var(--color-send);
+  transition: height 0.25s ease;
+}
+
+.grade-tick {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.5rem 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--color-granite);
+  text-align: left;
+}
+.grade-tick__dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--color-line-strong);
+  background: var(--color-limestone);
+  flex: none;
+  transition: border-color 0.2s ease, background 0.2s ease,
+    transform 0.2s ease;
+}
+.grade-tick__meta {
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  line-height: 1.05;
+}
+.grade-tick__grade {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-basalt);
+}
+.grade-tick__label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-granite-400);
+}
+.grade-tick:hover .grade-tick__meta,
+.grade-tick:focus-visible .grade-tick__meta {
+  opacity: 1;
+  transform: none;
+}
+.grade-tick:hover .grade-tick__dot {
+  border-color: var(--color-granite);
+}
+.grade-tick[data-active="true"] .grade-tick__dot {
+  border-color: var(--color-send);
+  background: var(--color-send);
+  transform: scale(1.15);
+}
+
+/* Mobile: slim progress bar under the header */
+.grade-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: var(--color-send);
+  z-index: 60;
+  transition: width 0.12s linear;
+}
+@media (min-width: 1180px) {
+  .grade-progress {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Buttons
+ * ------------------------------------------------------------------ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.95rem 1.5rem;
+  border: 2px solid transparent;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease,
+    transform 0.18s ease;
+  line-height: 1;
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn--send {
+  background: var(--color-send);
+  color: var(--color-chalk);
+}
+.btn--send:hover {
+  background: var(--color-send-deep);
+}
+.btn--ink {
+  background: var(--color-basalt);
+  color: var(--color-chalk);
+}
+.btn--ink:hover {
+  background: var(--color-basalt-800);
+}
+.btn--ghost {
+  border-color: var(--color-line-strong);
+  color: var(--color-basalt);
+}
+.btn--ghost:hover {
+  border-color: var(--color-basalt);
+  background: var(--color-basalt);
+  color: var(--color-chalk);
+}
+.btn--chalk {
+  background: var(--color-chalk);
+  color: var(--color-basalt);
+}
+.btn--chalk:hover {
+  background: #fff;
+}
+
+.btn .arrow {
+  transition: transform 0.18s ease;
+}
+.btn:hover .arrow {
+  transform: translateX(4px);
+}
+
+/* ------------------------------------------------------------------ *
+ * Cards / surfaces
+ * ------------------------------------------------------------------ */
+.card {
+  background: var(--color-chalk);
+  border: 1px solid var(--color-line);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.card--hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lift);
+  border-color: var(--color-line-strong);
+}
+
+/* Contour texture container */
+.contours {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.contours svg {
+  position: absolute;
+  width: 140%;
+  height: 140%;
+}
+
+/* ------------------------------------------------------------------ *
+ * Hero wall animation
+ * ------------------------------------------------------------------ */
+@keyframes route-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes hold-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.hero-route {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: route-draw 1.7s cubic-bezier(0.65, 0, 0.35, 1) forwards 0.25s;
+}
+.hero-hold {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hold-pop 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-route {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .hero-hold {
+    animation: none;
+    opacity: 1;
+  }
 }
