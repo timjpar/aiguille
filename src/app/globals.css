@@ -277,10 +277,13 @@ body {
 }
 
 /* ------------------------------------------------------------------ *
- * Buttons
+ * Buttons + surfaces
+ * Kept in the components layer so Tailwind utilities (display, borders,
+ * spacing) still override them when combined on the same element.
  * ------------------------------------------------------------------ */
-.btn {
-  display: inline-flex;
+@layer components {
+  .btn {
+    display: inline-flex;
   align-items: center;
   gap: 0.6rem;
   font-family: var(--font-mono);
@@ -348,6 +351,7 @@ body {
   box-shadow: var(--shadow-lift);
   border-color: var(--color-line-strong);
 }
+} /* end @layer components */
 
 /* Contour texture container */
 .contours {
