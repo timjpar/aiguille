@@ -39,3 +39,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+/gym-photos/raw
+/gym-photos/contact-sheet.jpg
